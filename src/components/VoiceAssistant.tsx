@@ -21,11 +21,11 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // URLs dos áudios do Google Drive convertidos para download direto
+  // URLs dos áudios do Voca.ro
   const audioUrls = {
-    solicitarGrafico: 'https://drive.google.com/uc?export=download&id=1mhoStMfPoodosun0iQrR7iOj5-ya5NjU',
-    analisando: 'https://drive.google.com/uc?export=download&id=12HlzNIqrbUSK8arUovA1y6HGE6pNrn7Q',
-    analiseCompleta: 'https://drive.google.com/uc?export=download&id=1tO4iisChB8zq7J-OTuomuvYIytEFEuUZ'
+    solicitarGrafico: 'https://voca.ro/1cyPt5is1ani',
+    analisando: 'https://voca.ro/1dQdRUys18Ne',
+    analiseCompleta: 'https://voca.ro/13UlOOJ0ino4'
   };
 
   // Função para reproduzir áudio real
@@ -49,6 +49,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       audioRef.current = audio;
       
       audio.volume = 0.8;
+      audio.autoplay = true;
       
       audio.onended = () => {
         setIsSpeaking(false);
