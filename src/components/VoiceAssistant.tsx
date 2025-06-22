@@ -21,15 +21,15 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // URLs dos áudios do Voca.ro
-  const audioUrls = {
-    solicitarGrafico: 'https://voca.ro/1cyPt5is1ani',
-    analisando: 'https://voca.ro/1dQdRUys18Ne',
-    analiseCompleta: 'https://voca.ro/13UlOOJ0ino4'
+  // Arquivos de áudio locais
+  const audioFiles = {
+    solicitarGrafico: '/audio/solicitar-grafico.mp3',
+    analisando: '/audio/analisando.mp3',
+    analiseCompleta: '/audio/analise-completa.mp3'
   };
 
-  // Função para reproduzir áudio real
-  const playAudio = async (audioKey: keyof typeof audioUrls, message: string) => {
+  // Função para reproduzir áudio local
+  const playAudio = async (audioKey: keyof typeof audioFiles, message: string) => {
     if (isMuted) {
       setCurrentMessage(message);
       setIsSpeaking(true);
@@ -44,20 +44,26 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       setCurrentMessage(message);
       setIsSpeaking(true);
 
+      // Parar qualquer áudio anterior
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
       // Criar novo elemento de áudio
-      const audio = new Audio(audioUrls[audioKey]);
+      const audio = new Audio(audioFiles[audioKey]);
       audioRef.current = audio;
       
       audio.volume = 0.8;
-      audio.autoplay = true;
+      audio.preload = 'auto';
       
       audio.onended = () => {
         setIsSpeaking(false);
         setCurrentMessage('');
       };
 
-      audio.onerror = () => {
-        console.log('Erro ao carregar áudio, usando fallback');
+      audio.onerror = (error) => {
+        console.log('Erro ao carregar áudio:', error);
         // Fallback: manter texto por 3 segundos se áudio falhar
         setTimeout(() => {
           setIsSpeaking(false);
@@ -65,9 +71,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         }, 3000);
       };
 
-      await audio.play();
+      audio.oncanplaythrough = () => {
+        audio.play().catch(error => {
+          console.log('Erro ao reproduzir áudio:', error);
+          // Fallback: manter texto por 3 segundos se reprodução falhar
+          setTimeout(() => {
+            setIsSpeaking(false);
+            setCurrentMessage('');
+          }, 3000);
+        });
+      };
+
+      // Tentar carregar o áudio
+      audio.load();
     } catch (error) {
-      console.log('Erro ao reproduzir áudio:', error);
+      console.log('Erro geral ao reproduzir áudio:', error);
       // Fallback: manter texto por 3 segundos se áudio falhar
       setTimeout(() => {
         setIsSpeaking(false);
