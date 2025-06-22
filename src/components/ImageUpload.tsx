@@ -1,8 +1,8 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileImage, Loader2 } from 'lucide-react';
+import { Upload, FileImage, Loader2, Clipboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
@@ -48,6 +48,67 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     reader.readAsDataURL(file);
   }, [isActive, onImageUpload, toast]);
 
+  const handlePasteImage = useCallback(async () => {
+    if (!isActive) {
+      toast({
+        title: "IA Inativa",
+        description: "Ative a IA primeiro para colar imagens",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      
+      for (const clipboardItem of clipboardItems) {
+        for (const type of clipboardItem.types) {
+          if (type.startsWith('image/')) {
+            const blob = await clipboardItem.getType(type);
+            const file = new File([blob], 'pasted-image.png', { type });
+            handleFileUpload(file);
+            toast({
+              title: "Imagem Colada",
+              description: "Imagem colada com sucesso da área de transferência",
+            });
+            return;
+          }
+        }
+      }
+      
+      toast({
+        title: "Nenhuma Imagem",
+        description: "Não foi encontrada nenhuma imagem na área de transferência",
+        variant: "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao Colar",
+        description: "Não foi possível acessar a área de transferência. Tente usar Ctrl+V.",
+        variant: "destructive"
+      });
+    }
+  }, [isActive, handleFileUpload, toast]);
+
+  // Handler para Ctrl+V
+  useEffect(() => {
+    const handleKeyPaste = async (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'v' && isActive) {
+        e.preventDefault();
+        
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+          // Fallback para browsers mais antigos
+          return;
+        }
+        
+        await handlePasteImage();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPaste);
+    return () => document.removeEventListener('keydown', handleKeyPaste);
+  }, [handlePasteImage, isActive]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -87,31 +148,49 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           onDragLeave={() => setIsDragOver(false)}
         >
           <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-300 mb-4">
+          <p className="text-gray-300 mb-6">
             {isActive 
-              ? "Arraste uma imagem do gráfico aqui ou clique para selecionar"
+              ? "Arraste uma imagem do gráfico aqui, cole com Ctrl+V ou clique para selecionar"
               : "Ative a IA primeiro para fazer upload"
             }
           </p>
           
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileInput}
-            className="hidden"
-            id="file-upload"
-            disabled={!isActive}
-          />
-          
-          <Button
-            asChild
-            className="metal-button"
-            disabled={!isActive}
-          >
-            <label htmlFor="file-upload">
-              Selecionar Imagem
-            </label>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileInput}
+              className="hidden"
+              id="file-upload"
+              disabled={!isActive}
+            />
+            
+            <Button
+              asChild
+              className="metal-button"
+              disabled={!isActive}
+            >
+              <label htmlFor="file-upload">
+                <Upload className="h-4 w-4 mr-2" />
+                Selecionar Imagem
+              </label>
+            </Button>
+
+            <Button
+              onClick={handlePasteImage}
+              className="metal-button"
+              disabled={!isActive}
+            >
+              <Clipboard className="h-4 w-4 mr-2" />
+              Colar Imagem
+            </Button>
+          </div>
+
+          {isActive && (
+            <p className="text-xs text-gray-500 mt-4">
+              💡 Dica: Você também pode usar Ctrl+V para colar uma imagem da área de transferência
+            </p>
+          )}
         </div>
       ) : (
         <Card className="p-4 glass-effect border-neon-blue/30">

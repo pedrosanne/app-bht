@@ -21,9 +21,10 @@ const Index = () => {
   const [totalScore, setTotalScore] = useState(0);
   const [analysisCount, setAnalysisCount] = useState(0);
   const [tradingParams, setTradingParams] = useState({
-    asset: 'forex',
-    timeframe: 'M15',
-    precision: 'neutra'
+    assetType: 'moedas',
+    asset: '',
+    timeframe: '5m',
+    precision: 50
   });
   const { toast } = useToast();
 
@@ -85,8 +86,12 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-metal rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-metal">
+                <img 
+                  src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png" 
+                  alt="Black Hat Trade Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <h1 className="text-2xl font-bold text-white animate-glow">
                 Black Hat Trade
