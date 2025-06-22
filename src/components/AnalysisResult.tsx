@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Target, Shield, Award, Download } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Shield, Award, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AnalysisResultProps {
@@ -28,10 +28,11 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result, tradingParams }
   const { toast } = useToast();
   const isUpSignal = result.signal === 'Compra';
 
-  const handleGenerateReport = () => {
+  const handleOpenBroker = () => {
+    window.open('https://www.homebroker.com/ref/0RWWcBvQ/', '_blank');
     toast({
-      title: "Relatório Gerado",
-      description: "PDF da análise está sendo preparado...",
+      title: "Redirecionando",
+      description: "Abrindo corretora em nova aba...",
     });
   };
 
@@ -131,10 +132,10 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result, tradingParams }
       <div className="flex flex-col sm:flex-row gap-3">
         <Button 
           className="metal-button flex-1"
-          onClick={handleGenerateReport}
+          onClick={handleOpenBroker}
         >
-          <Download className="h-4 w-4 mr-2" />
-          Gerar Relatório PDF
+          <ExternalLink className="h-4 w-4 mr-2" />
+          Abrir Corretora Direto
         </Button>
         
         <Button 
