@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'questrial': ['Questrial', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -52,16 +56,9 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				'neon-blue': '#4de9d8',
+				'bronze-dark': '#3b302a',
+				'metal-blue': '#1e40af',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +81,49 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-neon': {
+					'0%, 100%': {
+						boxShadow: '0 0 5px #4de9d8, 0 0 10px #4de9d8, 0 0 15px #4de9d8'
+					},
+					'50%': {
+						boxShadow: '0 0 10px #4de9d8, 0 0 20px #4de9d8, 0 0 30px #4de9d8'
+					}
+				},
+				'spectrum-wave': {
+					'0%, 100%': { transform: 'scaleY(0.3)' },
+					'50%': { transform: 'scaleY(1)' }
+				},
+				'fade-in-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(20px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'glow': {
+					'0%, 100%': {
+						textShadow: '0 0 5px #4de9d8, 0 0 10px #4de9d8'
+					},
+					'50%': {
+						textShadow: '0 0 10px #4de9d8, 0 0 20px #4de9d8, 0 0 30px #4de9d8'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-neon': 'pulse-neon 2s ease-in-out infinite',
+				'spectrum-wave': 'spectrum-wave 0.5s ease-in-out infinite',
+				'fade-in-up': 'fade-in-up 0.6s ease-out',
+				'glow': 'glow 2s ease-in-out infinite'
+			},
+			backgroundImage: {
+				'gradient-metal': 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
+				'gradient-dark': 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2a2a2a 100%)',
 			}
 		}
 	},
