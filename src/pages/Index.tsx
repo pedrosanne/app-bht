@@ -85,17 +85,12 @@ const Index = () => {
       <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-metal">
-                <img 
-                  src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png" 
-                  alt="Black Hat Trade Logo" 
-                  className="w-8 h-8 object-contain"
-                />
-              </div>
-              <h1 className="text-2xl font-bold text-white animate-glow">
-                Black Hat Trade
-              </h1>
+            <div className="flex items-center">
+              <img 
+                src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png" 
+                alt="Logo" 
+                className="h-12 w-auto object-contain"
+              />
             </div>
             
             <div className="flex items-center space-x-4">
