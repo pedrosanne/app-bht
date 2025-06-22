@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,12 @@ const Index = () => {
   const [userLevel, setUserLevel] = useState(1);
   const [totalScore, setTotalScore] = useState(0);
   const [analysisCount, setAnalysisCount] = useState(0);
-  const [tradingParams, setTradingParams] = useState({
+  const [tradingParams, setTradingParams] = useState<{
+    assetType: string;
+    asset: string;
+    timeframe: string;
+    precision: number;
+  }>({
     assetType: 'moedas',
     asset: '',
     timeframe: '5m',
