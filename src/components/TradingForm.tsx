@@ -14,7 +14,12 @@ interface TradingFormProps {
     timeframe: string;
     precision: number;
   };
-  onChange: (params: any) => void;
+  onChange: (params: {
+    assetType: string;
+    asset: string;
+    timeframe: string;
+    precision: number;
+  }) => void;
   disabled?: boolean;
 }
 
