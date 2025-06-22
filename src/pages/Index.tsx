@@ -161,7 +161,11 @@ const Index = () => {
             {analysisResult && (
               <AnalysisResult 
                 result={analysisResult}
-                tradingParams={tradingParams}
+                tradingParams={{
+                  asset: tradingParams.asset,
+                  timeframe: tradingParams.timeframe,
+                  precision: tradingParams.precision.toString()
+                }}
               />
             )}
           </div>
