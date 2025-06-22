@@ -1,7 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
-import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
 interface VoiceAssistantProps {
   isActive: boolean;
@@ -18,36 +18,107 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 }) => {
   const [currentMessage, setCurrentMessage] = useState<string>('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Simular fala da IA
-  const speak = (text: string) => {
-    setCurrentMessage(text);
-    setIsSpeaking(true);
-    
-    // Simular duração da fala
-    setTimeout(() => {
-      setIsSpeaking(false);
-      setCurrentMessage('');
-    }, 3000);
+  // URLs dos áudios do Google Drive convertidos para download direto
+  const audioUrls = {
+    solicitarGrafico: 'https://drive.google.com/uc?export=download&id=1mhoStMfPoodosun0iQrR7iOj5-ya5NjU',
+    analisando: 'https://drive.google.com/uc?export=download&id=12HlzNIqrbUSK8arUovA1y6HGE6pNrn7Q',
+    analiseCompleta: 'https://drive.google.com/uc?export=download&id=1tO4iisChB8zq7J-OTuomuvYIytEFEuUZ'
+  };
+
+  // Função para reproduzir áudio real
+  const playAudio = async (audioKey: keyof typeof audioUrls, message: string) => {
+    if (isMuted) {
+      setCurrentMessage(message);
+      setIsSpeaking(true);
+      setTimeout(() => {
+        setIsSpeaking(false);
+        setCurrentMessage('');
+      }, 3000);
+      return;
+    }
+
+    try {
+      setCurrentMessage(message);
+      setIsSpeaking(true);
+
+      // Criar novo elemento de áudio
+      const audio = new Audio(audioUrls[audioKey]);
+      audioRef.current = audio;
+      
+      audio.volume = 0.8;
+      
+      audio.onended = () => {
+        setIsSpeaking(false);
+        setCurrentMessage('');
+      };
+
+      audio.onerror = () => {
+        console.log('Erro ao carregar áudio, usando fallback');
+        // Fallback: manter texto por 3 segundos se áudio falhar
+        setTimeout(() => {
+          setIsSpeaking(false);
+          setCurrentMessage('');
+        }, 3000);
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.log('Erro ao reproduzir áudio:', error);
+      // Fallback: manter texto por 3 segundos se áudio falhar
+      setTimeout(() => {
+        setIsSpeaking(false);
+        setCurrentMessage('');
+      }, 3000);
+    }
+  };
+
+  // Função para parar áudio
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setIsSpeaking(false);
+    setCurrentMessage('');
+  };
+
+  // Toggle mute
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted && isSpeaking) {
+      stopAudio();
+    }
   };
 
   useEffect(() => {
     if (isActive && !hasImage) {
-      speak("Adicione um print do gráfico.");
+      playAudio('solicitarGrafico', 'Adicione um print do gráfico.');
     }
   }, [isActive]);
 
   useEffect(() => {
     if (hasImage && isAnalyzing) {
-      speak("Obrigado! Estou analisando…");
+      playAudio('analisando', 'Obrigado! Estou analisando…');
     }
   }, [hasImage, isAnalyzing]);
 
   useEffect(() => {
     if (analysisComplete) {
-      speak("Análise finalizada com sucesso! Realize a entrada imediatamente.");
+      playAudio('analiseCompleta', 'Análise finalizada com sucesso! Realize a entrada imediatamente.');
     }
   }, [analysisComplete]);
+
+  // Cleanup ao desmontar componente
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
 
   // Componente do espectro visual
   const AudioSpectrum = () => (
@@ -77,9 +148,24 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           <span>Assistente de Voz</span>
         </h3>
         
-        {isSpeaking && (
-          <Volume2 className="h-5 w-5 text-neon-blue animate-pulse" />
-        )}
+        <div className="flex items-center space-x-2">
+          {isSpeaking && (
+            <Volume2 className="h-5 w-5 text-neon-blue animate-pulse" />
+          )}
+          
+          {/* Botão de Mute */}
+          <button
+            onClick={toggleMute}
+            className="p-1 rounded-full hover:bg-white/10 transition-colors"
+            title={isMuted ? "Ativar áudio" : "Silenciar áudio"}
+          >
+            {isMuted ? (
+              <VolumeX className="h-4 w-4 text-red-400" />
+            ) : (
+              <Volume2 className="h-4 w-4 text-gray-400" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Avatar da IA */}
@@ -110,6 +196,11 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
             <p className="text-white text-sm bg-black/40 rounded-lg p-3 border border-neon-blue/30">
               "{currentMessage}"
             </p>
+            {isMuted && (
+              <p className="text-red-400 text-xs mt-1">
+                (Áudio silenciado)
+              </p>
+            )}
           </div>
         )}
 
@@ -122,6 +213,11 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                 : "Ative a IA para começar"
               }
             </p>
+            {isMuted && (
+              <p className="text-red-400 text-xs mt-1">
+                🔇 Áudio silenciado
+              </p>
+            )}
           </div>
         )}
       </div>
