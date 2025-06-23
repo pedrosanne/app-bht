@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
@@ -20,16 +19,15 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [lastPlayedAudio, setLastPlayedAudio] = useState<string>('');
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Arquivos de áudio locais
   const audioFiles = {
     solicitarGrafico: '/audio/solicitar-grafico.mp3',
     analisando: '/audio/analisando.mp3',
     analiseCompleta: '/audio/analise-completa.mp3'
   };
 
-  // Função para parar qualquer áudio que esteja tocando
   const stopCurrentAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -38,79 +36,65 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
     setIsSpeaking(false);
     setCurrentMessage('');
+    setIsPlayingAudio(false);
   };
 
-  // Função para reproduzir áudio local com controle de sobreposição
   const playAudio = async (audioKey: keyof typeof audioFiles, message: string) => {
-    // Evitar tocar o mesmo áudio novamente
-    if (lastPlayedAudio === audioKey) {
-      return;
-    }
-
-    // Parar qualquer áudio anterior
+    if (isPlayingAudio || lastPlayedAudio === audioKey) return;
+    setIsPlayingAudio(true);
     stopCurrentAudio();
 
+    setCurrentMessage(message);
+    setIsSpeaking(true);
+    setLastPlayedAudio(audioKey);
+
     if (isMuted) {
-      setCurrentMessage(message);
-      setIsSpeaking(true);
-      setLastPlayedAudio(audioKey);
       setTimeout(() => {
         setIsSpeaking(false);
         setCurrentMessage('');
+        setIsPlayingAudio(false);
       }, 3000);
       return;
     }
 
     try {
-      setCurrentMessage(message);
-      setIsSpeaking(true);
-      setLastPlayedAudio(audioKey);
-
-      // Criar novo elemento de áudio
       const audio = new Audio(audioFiles[audioKey]);
       audioRef.current = audio;
-      
       audio.volume = 0.8;
       audio.preload = 'auto';
-      
+
       audio.onended = () => {
         setIsSpeaking(false);
         setCurrentMessage('');
+        setIsPlayingAudio(false);
         audioRef.current = null;
       };
 
-      audio.onerror = (error) => {
-        console.log('Erro ao carregar áudio:', error);
-        setTimeout(() => {
-          setIsSpeaking(false);
-          setCurrentMessage('');
-          audioRef.current = null;
-        }, 3000);
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        setCurrentMessage('');
+        setIsPlayingAudio(false);
+        audioRef.current = null;
       };
 
       audio.oncanplaythrough = () => {
-        audio.play().catch(error => {
-          console.log('Erro ao reproduzir áudio:', error);
-          setTimeout(() => {
-            setIsSpeaking(false);
-            setCurrentMessage('');
-            audioRef.current = null;
-          }, 3000);
+        audio.play().catch(() => {
+          setIsSpeaking(false);
+          setCurrentMessage('');
+          setIsPlayingAudio(false);
+          audioRef.current = null;
         });
       };
 
       audio.load();
     } catch (error) {
-      console.log('Erro geral ao reproduzir áudio:', error);
-      setTimeout(() => {
-        setIsSpeaking(false);
-        setCurrentMessage('');
-        audioRef.current = null;
-      }, 3000);
+      setIsSpeaking(false);
+      setCurrentMessage('');
+      setIsPlayingAudio(false);
+      audioRef.current = null;
     }
   };
 
-  // Toggle mute
   const toggleMute = () => {
     setIsMuted(!isMuted);
     if (!isMuted && isSpeaking) {
@@ -118,34 +102,27 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
   };
 
-  // Efeito para áudio de solicitar gráfico (só quando IA está ativa e não tem imagem)
   useEffect(() => {
-    if (isActive && !hasImage && !isAnalyzing && !analysisComplete) {
+    if (isActive && !hasImage && !isAnalyzing && !analysisComplete && !isPlayingAudio) {
       playAudio('solicitarGrafico', 'Adicione um print do gráfico.');
-    } else if (hasImage || isAnalyzing || analysisComplete) {
-      // Se já tem imagem, está analisando ou análise completa, parar o áudio de solicitar
-      if (lastPlayedAudio === 'solicitarGrafico') {
-        stopCurrentAudio();
-        setLastPlayedAudio('');
-      }
+    } else if ((hasImage || isAnalyzing || analysisComplete) && lastPlayedAudio === 'solicitarGrafico') {
+      stopCurrentAudio();
+      setLastPlayedAudio('');
     }
-  }, [isActive, hasImage, isAnalyzing, analysisComplete]);
+  }, [isActive, hasImage, isAnalyzing, analysisComplete, isPlayingAudio]);
 
-  // Efeito para áudio de análise (só quando tem imagem e está analisando)
   useEffect(() => {
-    if (hasImage && isAnalyzing && !analysisComplete) {
+    if (hasImage && isAnalyzing && !analysisComplete && !isPlayingAudio) {
       playAudio('analisando', 'Obrigado! Estou analisando…');
     }
-  }, [hasImage, isAnalyzing, analysisComplete]);
+  }, [hasImage, isAnalyzing, analysisComplete, isPlayingAudio]);
 
-  // Efeito para áudio de análise completa
   useEffect(() => {
-    if (analysisComplete && !isAnalyzing) {
+    if (analysisComplete && !isAnalyzing && !isPlayingAudio) {
       playAudio('analiseCompleta', 'Análise finalizada com sucesso! Realize a entrada imediatamente.');
     }
-  }, [analysisComplete, isAnalyzing]);
+  }, [analysisComplete, isAnalyzing, isPlayingAudio]);
 
-  // Reset do estado quando a IA é desativada
   useEffect(() => {
     if (!isActive) {
       stopCurrentAudio();
@@ -153,14 +130,12 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
   }, [isActive]);
 
-  // Cleanup ao desmontar componente
   useEffect(() => {
     return () => {
       stopCurrentAudio();
     };
   }, []);
 
-  // Componente do espectro visual
   const AudioSpectrum = () => (
     <div className="flex items-end justify-center space-x-1 h-16">
       {Array.from({ length: 12 }).map((_, i) => (
@@ -187,12 +162,11 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           )}
           <span>Assistente de Voz</span>
         </h3>
-        
+
         <div className="flex items-center space-x-2">
           {isSpeaking && (
             <Volume2 className="h-5 w-5 text-neon-blue animate-pulse" />
           )}
-          
           <button
             onClick={toggleMute}
             className="p-1 rounded-full hover:bg-white/10 transition-colors"
@@ -207,7 +181,6 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         </div>
       </div>
 
-      {/* Avatar da IA */}
       <div className="flex flex-col items-center space-y-4">
         <div className={`
           w-20 h-20 rounded-full bg-gradient-metal flex items-center justify-center
@@ -219,14 +192,12 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           </div>
         </div>
 
-        {/* Espectro de áudio */}
         {isSpeaking && (
           <div className="w-full animate-fade-in-up">
             <AudioSpectrum />
           </div>
         )}
 
-        {/* Mensagem atual */}
         {currentMessage && (
           <div className="text-center animate-fade-in-up">
             <p className="text-neon-blue font-semibold text-lg mb-2">
@@ -243,7 +214,6 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           </div>
         )}
 
-        {/* Status quando não está falando */}
         {!isSpeaking && (
           <div className="text-center">
             <p className="text-gray-400 text-sm">
@@ -261,7 +231,6 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         )}
       </div>
 
-      {/* Efeito de fundo */}
       {isSpeaking && (
         <div className="absolute inset-0 bg-gradient-to-r from-neon-blue/5 via-transparent to-neon-blue/5 animate-pulse" />
       )}
