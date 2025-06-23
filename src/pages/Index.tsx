@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,29 +19,29 @@ const Index = () => {
   const [userLevel, setUserLevel] = useState(1);
   const [totalScore, setTotalScore] = useState(0);
   const [analysisCount, setAnalysisCount] = useState(0);
-  const [tradingParams, setTradingParams] = useState<{
-    assetType: string;
-    asset: string;
-    timeframe: string;
-    precision: number;
-  }>({
+  const [isMobile, setIsMobile] = useState(false);
+  const [tradingParams, setTradingParams] = useState({
     assetType: 'moedas',
     asset: '',
     timeframe: '5m',
     precision: 50
   });
+
   const { toast } = useToast();
   const analysisResultRef = useRef<HTMLDivElement>(null);
 
-  // Scroll automático para o resultado quando a análise for concluída
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   useEffect(() => {
     if (analysisResult && !isAnalyzing && analysisResultRef.current) {
       setTimeout(() => {
-        analysisResultRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 500); // Pequeno delay para garantir que o componente foi renderizado
+        analysisResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
     }
   }, [analysisResult, isAnalyzing]);
 
@@ -59,33 +58,31 @@ const Index = () => {
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImage(imageUrl);
     setIsAnalyzing(true);
-    
-    // Simular análise da IA
+
     setTimeout(() => {
       const signals = ['Compra', 'Venda'];
       const signal = signals[Math.floor(Math.random() * signals.length)];
-      const confidence = Math.floor(Math.random() * 30) + 70; // 70-100%
-      const score = Math.floor(Math.random() * 300) + 200; // 200-500 pontos
-      
+      const confidence = Math.floor(Math.random() * 30) + 70;
+      const score = Math.floor(Math.random() * 300) + 200;
+
       const result = {
         signal,
         confidence,
         score,
-        reasoning: signal === 'Compra' 
-          ? "Padrão de reversão detectado com RSI oversold e volume crescente. Suporte forte identificado." 
+        reasoning: signal === 'Compra'
+          ? "Padrão de reversão detectado com RSI oversold e volume crescente. Suporte forte identificado."
           : "Resistência clara com divergência bearish no MACD. Padrão de topo duplo confirmado.",
         entry: signal === 'Compra' ? 1.2534 : 1.2598,
         stopLoss: signal === 'Compra' ? 1.2510 : 1.2620,
         takeProfit: signal === 'Compra' ? 1.2580 : 1.2550,
         riskReward: "1:2.5"
       };
-      
+
       setAnalysisResult(result);
       setIsAnalyzing(false);
       setAnalysisCount(prev => prev + 1);
       setTotalScore(prev => prev + score);
-      
-      // Calcular novo nível
+
       const newLevel = Math.floor(totalScore / 1000) + 1;
       if (newLevel > userLevel) {
         setUserLevel(newLevel);
@@ -99,30 +96,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-dark text-white">
-      {/* Header */}
       <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <img 
-                src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png" 
-                alt="Logo" 
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-            
+            <img
+              src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png"
+              alt="Logo"
+              className="h-12 w-auto object-contain"
+            />
             <div className="flex items-center space-x-4">
-              <GameScore 
+              <GameScore
                 level={userLevel}
                 score={totalScore}
                 analysisCount={analysisCount}
               />
-              
               <Button
                 onClick={handleAIToggle}
-                className={`metal-button flex items-center space-x-2 ${
-                  isAIActive ? 'animate-pulse-neon' : ''
-                }`}
+                className={`metal-button flex items-center space-x-2 ${isAIActive ? 'animate-pulse-neon' : ''}`}
               >
                 <Power className={`h-4 w-4 ${isAIActive ? 'text-green-400' : 'text-red-400'}`} />
                 <span>{isAIActive ? 'IA ATIVA' : 'ATIVAR IA'}</span>
@@ -132,9 +122,9 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Assistente de Voz - Mobile Only (Top Position) */}
-      <div className="lg:hidden container mx-auto px-4 py-4">
-        <VoiceAssistant 
+      {/* Voice Assistant - Único componente, responsivo via lógica JS */}
+      <div className="container mx-auto px-4 py-4">
+        <VoiceAssistant
           isActive={isAIActive}
           isAnalyzing={isAnalyzing}
           hasImage={!!uploadedImage}
@@ -142,36 +132,29 @@ const Index = () => {
         />
       </div>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Upload e Análise */}
           <div className="lg:col-span-2 space-y-6">
-            
-            {/* Status e Controles */}
             <Card className="p-6 glass-effect border-neon-blue/30">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold flex items-center space-x-2">
                   <Zap className="h-5 w-5 text-neon-blue" />
                   <span>Centro de Análise</span>
                 </h2>
-                <Badge 
+                <Badge
                   variant={isAIActive ? "default" : "secondary"}
                   className={isAIActive ? "bg-green-500" : "bg-red-500"}
                 >
                   {isAIActive ? "IA ONLINE" : "IA OFFLINE"}
                 </Badge>
               </div>
-
-              <TradingForm 
+              <TradingForm
                 params={tradingParams}
                 onChange={setTradingParams}
                 disabled={!isAIActive}
               />
             </Card>
 
-            {/* Upload de Imagem */}
             <Card className="p-6 glass-effect border-neon-blue/30">
               <ImageUpload
                 onImageUpload={handleImageUpload}
@@ -181,10 +164,9 @@ const Index = () => {
               />
             </Card>
 
-            {/* Resultado da Análise */}
             {analysisResult && (
               <div ref={analysisResultRef}>
-                <AnalysisResult 
+                <AnalysisResult
                   result={analysisResult}
                   tradingParams={{
                     asset: tradingParams.asset,
@@ -196,62 +178,41 @@ const Index = () => {
             )}
           </div>
 
-          {/* Sidebar - Desktop Only */}
-          <div className="hidden lg:block space-y-6">
-            
-            {/* Assistente de Voz - Desktop */}
-            <VoiceAssistant 
-              isActive={isAIActive}
-              isAnalyzing={isAnalyzing}
-              hasImage={!!uploadedImage}
-              analysisComplete={!!analysisResult}
-            />
-
-            {/* Estatísticas */}
+          {/* Estatísticas e Dicas */}
+          <div className="space-y-6">
             <Card className="p-6 glass-effect border-neon-blue/30">
               <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
                 <Trophy className="h-5 w-5 text-yellow-400" />
                 <span>Suas Estatísticas</span>
               </h3>
-              
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Análises Hoje</span>
                   <span className="text-white font-semibold">{analysisCount}</span>
                 </div>
-                
                 <div className="flex justify-between">
                   <span className="text-gray-400">Pontuação Total</span>
                   <span className="text-neon-blue font-semibold">{totalScore}</span>
                 </div>
-                
                 <div className="flex justify-between">
                   <span className="text-gray-400">Nível Atual</span>
                   <span className="text-yellow-400 font-semibold">#{userLevel}</span>
                 </div>
-                
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-400">Progresso do Nível</span>
-                    <span className="text-sm text-gray-400">
-                      {totalScore % 1000}/1000
-                    </span>
+                    <span className="text-sm text-gray-400">{totalScore % 1000}/1000</span>
                   </div>
-                  <Progress 
-                    value={(totalScore % 1000) / 10} 
-                    className="h-2"
-                  />
+                  <Progress value={(totalScore % 1000) / 10} className="h-2" />
                 </div>
               </div>
             </Card>
 
-            {/* Dicas Rápidas */}
             <Card className="p-6 glass-effect border-neon-blue/30">
               <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
                 <Target className="h-5 w-5 text-neon-blue" />
                 <span>Dicas de Trading</span>
               </h3>
-              
               <div className="space-y-3 text-sm text-gray-300">
                 <p>• Sempre defina stop loss antes de entrar</p>
                 <p>• Mantenha disciplina no gerenciamento de risco</p>
@@ -263,21 +224,19 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-white/10 bg-black/50 backdrop-blur-md mt-16">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
             <div className="flex items-center space-x-4">
-              <img 
-                src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png" 
-                alt="Logo" 
+              <img
+                src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png"
+                alt="Logo"
                 className="h-8 w-auto object-contain"
               />
               <div className="text-sm text-gray-400">
                 <p>&copy; 2024 Trading AI. Todos os direitos reservados.</p>
               </div>
             </div>
-            
             <div className="flex items-center space-x-6 text-sm text-gray-400">
               <span>Análise Inteligente</span>
               <span className="text-neon-blue">•</span>
