@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,19 @@ const Index = () => {
     precision: 50
   });
   const { toast } = useToast();
+  const analysisResultRef = useRef<HTMLDivElement>(null);
+
+  // Scroll automático para o resultado quando a análise for concluída
+  useEffect(() => {
+    if (analysisResult && !isAnalyzing && analysisResultRef.current) {
+      setTimeout(() => {
+        analysisResultRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 500); // Pequeno delay para garantir que o componente foi renderizado
+    }
+  }, [analysisResult, isAnalyzing]);
 
   const handleAIToggle = () => {
     setIsAIActive(!isAIActive);
@@ -159,14 +172,16 @@ const Index = () => {
 
             {/* Resultado da Análise */}
             {analysisResult && (
-              <AnalysisResult 
-                result={analysisResult}
-                tradingParams={{
-                  asset: tradingParams.asset,
-                  timeframe: tradingParams.timeframe,
-                  precision: tradingParams.precision.toString()
-                }}
-              />
+              <div ref={analysisResultRef}>
+                <AnalysisResult 
+                  result={analysisResult}
+                  tradingParams={{
+                    asset: tradingParams.asset,
+                    timeframe: tradingParams.timeframe,
+                    precision: tradingParams.precision.toString()
+                  }}
+                />
+              </div>
             )}
           </div>
 
