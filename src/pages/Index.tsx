@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -251,6 +252,32 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 bg-black/50 backdrop-blur-md mt-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-4">
+              <img 
+                src="/lovable-uploads/b6caf80d-f50c-4265-87a8-3b903b1176c7.png" 
+                alt="Logo" 
+                className="h-8 w-auto object-contain"
+              />
+              <div className="text-sm text-gray-400">
+                <p>&copy; 2024 Trading AI. Todos os direitos reservados.</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-6 text-sm text-gray-400">
+              <span>Análise Inteligente</span>
+              <span className="text-neon-blue">•</span>
+              <span>Trading Profissional</span>
+              <span className="text-neon-blue">•</span>
+              <span>IA Avançada</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
