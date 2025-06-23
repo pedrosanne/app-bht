@@ -29,12 +29,12 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#0f0f0f',
         icons: [
           {
-            src: '/logo-192.png',
+            src: '/logo-192.webp',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/logo-512.png',
+            src: '/logo-512.webp',
             sizes: '512x512',
             type: 'image/png'
           }
