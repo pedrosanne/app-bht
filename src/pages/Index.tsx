@@ -132,6 +132,16 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Assistente de Voz - Mobile Only (Top Position) */}
+      <div className="lg:hidden container mx-auto px-4 py-4">
+        <VoiceAssistant 
+          isActive={isAIActive}
+          isAnalyzing={isAnalyzing}
+          hasImage={!!uploadedImage}
+          analysisComplete={!!analysisResult}
+        />
+      </div>
+
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -186,10 +196,10 @@ const Index = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Desktop Only */}
+          <div className="hidden lg:block space-y-6">
             
-            {/* Assistente de Voz */}
+            {/* Assistente de Voz - Desktop */}
             <VoiceAssistant 
               isActive={isAIActive}
               isAnalyzing={isAnalyzing}
